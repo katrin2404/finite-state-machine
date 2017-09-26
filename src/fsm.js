@@ -1,61 +1,74 @@
 class FSM {
-    /**
-     * Creates new FSM instance.
-     * @param config
-     */
-    constructor(config) {}
+    constructor(config) {
+        if (!config || !config.states || !config.initial) {
+            throw new Error('No Config');
+        }
+        this.states = config.states;
+        this.initial = config.initial;
+        this.position = 0;
+        this.history = {
+            '-1': config.initial,
+        };
+        this.state = config.initial;
+    }
 
-    /**
-     * Returns active state.
-     * @returns {String}
-     */
-    getState() {}
+    reset() {
+        this.changeState(this.initial);
+    }
 
-    /**
-     * Goes to specified state.
-     * @param state
-     */
-    changeState(state) {}
+    getState() {
+        return this.state;
+    }
 
-    /**
-     * Changes state according to event transition rules.
-     * @param event
-     */
-    trigger(event) {}
+    getStates(event) {
+        if (event) {
+            return Object.keys(this.states).filter(state => this.states[state].transitions[event] !== undefined);
+        }
+        return Object.keys(this.states);
+    }
 
-    /**
-     * Resets FSM state to initial.
-     */
-    reset() {}
+    changeState(newState) {
+        if (this.states[newState]) {
+            this.state = newState;
+            this.history[this.position++] = newState;
+        } else {
+            throw new Error('unknown state');
+        }
+    }
 
-    /**
-     * Returns an array of states for which there are specified event transition rules.
-     * Returns all states if argument is undefined.
-     * @param event
-     * @returns {Array}
-     */
-    getStates(event) {}
+    trigger(action) {
+        if (this.states[this.state].transitions[action]) {
+            this.changeState(this.states[this.state].transitions[action]);
+        } else {
+            throw new Error('unnoun action');
+        }
+    }
 
-    /**
-     * Goes back to previous state.
-     * Returns false if undo is not available.
-     * @returns {Boolean}
-     */
-    undo() {}
+    undo() {
+        if (this.position > 0) {
+            this.state = this.history[--this.position - 1];
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-    /**
-     * Goes redo to state.
-     * Returns false if redo is not available.
-     * @returns {Boolean}
-     */
-    redo() {}
+    redo() {
+        if (this.history[this.position]) {
+            this.state = this.history[this.position++];
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-    /**
-     * Clears transition history
-     */
-    clearHistory() {}
+    clearHistory() {
+        this.position = 0;
+        this.history = {
+            '-1': this.initial,
+        };
+    }
+
 }
 
 module.exports = FSM;
-
-/** @Created by Uladzimir Halushka **/
